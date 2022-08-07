@@ -1,11 +1,10 @@
-import Grid from './grid';
+import Grid from './grid.js';
 
 class Generator {
     constructor(options) {
         this.game = options.game;
 
         this.options = {
-            canvasId: options.canvasId,
             canvasWidth: options.canvasWidth || 800,
             canvasHeight: options.canvasHeight || 600,
             cellHeight: options.cellHeight || 32,
@@ -13,17 +12,17 @@ class Generator {
         };
 
         // Canvas details
-        this.canvas = { 
+        this.canvas = {
             height: this.options.canvasHeight,
             width: this.options.canvasWidth
         };
 
         // Cell details
-        this.cell = { 
+        this.cell = {
             height: this.options.cellHeight,
             width: this.options.cellWidth
         };
-    
+
         // Directions
         this.directions = {
             north: {
@@ -101,6 +100,12 @@ class Generator {
         }
 
         this.postProccess();
+
+        return {
+            matrix: this.grid.matrix,
+            tiles: this.grid.tiles,
+            cell: this.cell,
+        };
     }
 
     /**
@@ -116,39 +121,13 @@ class Generator {
 
                 // check if there are any other void tiles next to the this void.
                 // if there are none, remove it to make it look a bit better
-                let isTileAlone =   !this.grid.tileIsType(x + 1, y, 'void') && 
-                                    !this.grid.tileIsType(x - 1, y, 'void') && 
-                                    !this.grid.tileIsType(x, y + 1, 'void') && 
+                let isTileAlone =   !this.grid.tileIsType(x + 1, y, 'void') &&
+                                    !this.grid.tileIsType(x - 1, y, 'void') &&
+                                    !this.grid.tileIsType(x, y + 1, 'void') &&
                                     !this.grid.tileIsType(x, y - 1, 'void');
                 if (isTileAlone) {
                     this.grid.setTile(x, y, 'floor');
                 }
-            });
-        });
-
-        // render the floor tiles
-        this.generateTiles();
-    }
-
-    /**
-     * Generates the coloured tile where there is floor
-     * @return {Void}
-     */
-    generateTiles() {
-        const tileTypes = Object.values(this.grid.tiles);
-        const scene = this.game.scene.getScene('map');
-        scene.clear();
-
-        this.grid.matrix.forEach((row, x) => {
-            row.forEach((tile, y) => {
-                let tileData = tileTypes.find((t) => t.id === tile);
-
-                scene.renderTile(
-                    x * this.cell.width,
-                    y * this.cell.height,
-                    tileData.id,
-                    tileData.texture
-                );
             });
         });
     }

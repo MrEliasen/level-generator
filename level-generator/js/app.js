@@ -1,30 +1,22 @@
-import Phaser from 'phaser';
-import Generator from './generator';
-import TiledMapScene from './scenes';
+import Generator from './generator.js';
 
 class App {
     constructor() {
-        this._config = {
-            type: Phaser.AUTO,
-            parent: 'level',
-            width: 1024,
-            height: 768,
-            transparent: true,
-            fps: {
-                min: 5,
-                target: 10,
-            },
-        };
-        this.game = new Phaser.Game(this._config);
-        this.game.scene.add('map', TiledMapScene, true);
+        const tileSize = 32;
+
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = tileSize * 24;
+        this.canvas.height = tileSize * 24;
+        this.canvasContext = this.canvas.getContext('2d');
+
+        document.querySelector('#level').appendChild(this.canvas);
 
         // load level generator
         this.levelGenerator = new Generator({
-            canvasWidth: this._config.width * 3,
-            canvasHeight: this._config.height * 3,
-            cellHeight: 128,
-            cellWidth: 128,
-            game: this.game,
+            canvasWidth: this.canvas.width,
+            canvasHeight: this.canvas.height,
+            cellHeight: tileSize,
+            cellWidth: tileSize,
         });
 
         // setup our event listeners
@@ -34,9 +26,36 @@ class App {
                 return;
             }
             //"steps" the generator should take. higher number = bigger level on avg.
-            this.levelGenerator.generate(100);
-        }, false);
+            const scene = this.levelGenerator.generate(100);
 
+            this.render(scene);
+        }, false);
+    }
+
+    render(scene) {
+        console.debug(scene);
+
+        const textures = {
+            '0': '#000000',
+            '55': '#a0a0a0',
+        };
+        const tiles = {};
+
+        Object.values(scene.tiles).forEach((value) => {
+            tiles[value.id] = value;
+        });
+
+        scene.matrix.forEach((row, y) => {
+            row.forEach((type, x) => {
+                const w = scene.cell.width;
+                const h = scene.cell.height;
+                const tile = tiles[type];
+                const texture = textures[tile.texture];
+
+                this.canvasContext.fillStyle = texture;
+                this.canvasContext.fillRect(w * x, h * y, w, h);
+            });
+        });
     }
 }
 
